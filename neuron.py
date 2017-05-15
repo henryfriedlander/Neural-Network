@@ -66,7 +66,7 @@ class NeuralNetwork(object):
 		self.testInputs = [0] * 20;
 
 	def read():
-		# read stock data from KitBot as in the other githuh
+		# read stock data from KitBot as in the other github
 		# implementation
 
 	def run(self):
@@ -87,8 +87,10 @@ class NeuralNetwork(object):
 		output/=2
 		return output
 
+	def costFunctionPrime():
+		pass
+
 	def computeOutputLayerGradients():
-		output = [[]]
 		y = self.correctResults
 		yHat = self.outputLayer.propogate()
 		y2 = self.hiddenLayer2.propogate()
@@ -103,7 +105,6 @@ class NeuralNetwork(object):
 			tempNeuron.setGradients(tempGradients)
 
 	def computeHiddenLayer2Gradients():
-		output = [[]]
 		y = self.correctResults
 		yHat = self.outputLayer.propogate()
 		y2 = self.hiddenLayer2.propogate()
@@ -116,6 +117,68 @@ class NeuralNetwork(object):
 				for k in xrange(4):
 					tempOutputLayerNeuron = self.outputLayer.getNeuron(k)
 					w3 = tempOutputLayerNeuron.getWeights()
-					temp = (y[k] - yHat[k]) * signoidPrime(tempOutputLayerNeuron.getSum()) * w3[k] * signoidPrime(tempNeuron.getSum()) * y1(j)
-				tempGradients[j] += temp
+					tempGradients[j] += (y[k] - yHat[k]) * signoidPrime(tempOutputLayerNeuron.getSum())\
+					 * w3[k] * signoidPrime(tempNeuron.getSum()) * y1(j)
 			tempNeuron.setGradients(tempGradients)
+
+
+	def computHiddenLayer1Gradients():
+		y = self.correctResults
+		yHat = self.hiddenLayer2.propogate()
+		y2 = self.hiddenLayer1.propogate()
+		inputs = self.testInputs
+		HLiter = xrange(len(self.hiddenLayer1))
+		for i in HLiter:
+			tempHiddenLayer1Neuron = self.hiddenLayer1.getNeuron(i)
+			for j in HLiter:
+				tempGradient = 0
+				for k in xrange(4):
+					tempOutputLayerNeuron = self.outputLayer.getNeuron(k)
+					w3 = tempOutputLayerNeuron.getWeights()
+					for m in HLiter:
+						tempHiddenLayer2Neuron = self.hiddenLayer2.getNeuron(m)
+						w2 = tempHiddenLayer2Neuron.getWeights()
+						tempGradient += (y[k] - yHat[k])* signoidPrime(tempOutputLayerNeuron.getSum())\
+						 * w3[m] * signoidPrime(tempHiddenLayer2Neuron.getSum()) * w2[i]\
+						   * signoidPrime(tempHiddenLayer1Neuron.getSum()) * inputs[j]
+				#IS THE LINE BELOW CORRECT?????
+				tempGradients[j] = tempGradient + tempHiddenLayer1Neuron.getWeights(j) * self.Lambda
+				# SHOULD THIS LINE BE HERE OR OUTSIDE OF THE J FOR LOOP???
+				tempHiddenLayer1Neuron.setGradients(tempGradients);
+
+		def setParams(params):
+			counter = 0
+			# make it easier to change number of iterations
+			for i in xrange(20):
+				tempHiddenLayer1Neuron = self.hiddenLayer1.getNeuron(i)
+				tempNewWeights = []
+				for j in xrange(20):
+					counter += 1
+					tempNewWeights[j] = params[counter]
+				tempHiddenLayer1Neuron.setWeights(tempNewWeights)
+			for k in xrange(20):
+				tempHiddenLayer2Neuron = self.hiddenLayer2.getNeuron(k)
+				tempNewWeights = []
+				for l in xrange(20):
+					counter += 1
+					tempNewWeights[l] = params[counter]
+				tempHiddenLayer2Neuron.setWeights(tempNewWeights)
+			for m in xrange(4):
+				tempOutputLayerNeuron = self.outputLayer.getNeuron(m)
+				tempNewWeights = []
+				for n in xrange(20):
+					counter += 1
+					tempNewWeights[n] = params[counter]
+				tempOutputLayerNeuron.setWeights(tempNewWeights)
+
+
+		'''
+		def setParam(layer, numNeurons, counter):
+			for i in xrange(numNeurons):
+				tempLayerNeuron = layer.getNeuron(i)
+				tempNewWeights = []
+				for j in xrange(20):
+					counter += 1
+					tempNewWeights[j] = params[counter]
+				tempHiddenLayer1Neuron.setWeights(tempNewWeights)
+		'''
