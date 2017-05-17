@@ -1,4 +1,4 @@
-import math, random, string
+import math, random, string, urllib2, quandl, numpy
 
 # calculate a random number a <= rand < b
 def rand(a, b):
@@ -27,7 +27,10 @@ class Neuron(object):
 		self.weights = newWeights
 
 	def setGradients(newGradients):
-		this.
+		this.gradients = newGradients
+
+	def getGradients():
+		return self.gradients
 
 	def getSumOfWeightedInputesNodes():
 		return self.sumOfWeightedInputNodes
@@ -65,9 +68,36 @@ class NeuralNetwork(object):
 		self.outputLayer = Layer(4);
 		self.testInputs = [0] * 20;
 
-	def read():
-		# read stock data from KitBot as in the other github
-		# implementation
+	def getHistoricalData():
+		stockData = quandl.get("NASDAQOMX/COMP", authtoken="8ReosziHmAyZE-zPB7zQ", returns='numpy')
+		# index 0 is the date
+		# index 1 is the index value
+		# index 2 is the high
+		# index 3 is the low
+		# index 4 is the total market
+		# index 5 is the dividend market value
+		numElements = len(stockData)
+		indexValues = emptyList(numElements)
+		highValues = emptyList(numElements)
+		lowValues = emptyList(numElements)
+		numDataPerPacket = 5
+
+		for stockIndex in xrange(len(stockData)):
+		    for packet in xrange(numDataPerPacket):
+		        if stockIndex - packet >= 0:
+		            stockDay = stockData[stockIndex]
+		            indexValues[stockIndex - packet] += [stockDay[1]]
+		            highValues[stockIndex - packet]  += [stockDay[2]]
+		            lowValues[stockIndex - packet]   += [stockDay[3]]
+
+		indexValues = indexValues[:-4]
+		highValues  =  highValues[:-4]
+		lowValues   =   lowValues[:-4]
+
+	    return [indexValues, highValues, lowValues]
+
+	def emptyList(length):
+	    return [[] for i in xrange(length)]
 
 	def run(self):
 		self.selhiddenLayer1.setInputs(testInputs);
@@ -80,15 +110,12 @@ class NeuralNetwork(object):
 		return results
 
 	def costFunction():
-		output = 0 
+		output = 0
 		yHat = outputLayer.propogate()
 		for i in xrange(4):
 			output += (self.correctResults[i] - yHat[i])**2
 		output/=2
 		return output
-
-	def costFunctionPrime():
-		pass
 
 	def computeOutputLayerGradients():
 		y = self.correctResults
@@ -138,13 +165,15 @@ class NeuralNetwork(object):
 					for m in HLiter:
 						tempHiddenLayer2Neuron = self.hiddenLayer2.getNeuron(m)
 						w2 = tempHiddenLayer2Neuron.getWeights()
+
 						tempGradient += (y[k] - yHat[k])* signoidPrime(tempOutputLayerNeuron.getSum())\
 						 * w3[m] * signoidPrime(tempHiddenLayer2Neuron.getSum()) * w2[i]\
 						   * signoidPrime(tempHiddenLayer1Neuron.getSum()) * inputs[j]
+
 				#IS THE LINE BELOW CORRECT?????
 				tempGradients[j] = tempGradient + tempHiddenLayer1Neuron.getWeights(j) * self.Lambda
 				# SHOULD THIS LINE BE HERE OR OUTSIDE OF THE J FOR LOOP???
-				tempHiddenLayer1Neuron.setGradients(tempGradients);
+			tempHiddenLayer1Neuron.setGradients(tempGradients);
 
 		def setParams(params):
 			counter = 0
@@ -170,6 +199,23 @@ class NeuralNetwork(object):
 					counter += 1
 					tempNewWeights[n] = params[counter]
 				tempOutputLayerNeuron.setWeights(tempNewWeights)
+
+
+		def computeGradients():
+			output = []
+			for neuron in self.hiddenLayer1:
+				for gradient in neuron.getGradients():
+					output += [gradient]
+
+			for neuron in self.hiddenLayer2:
+				for gradient in neuron.getGradients():
+					output += [gradient]
+
+			for neuron in self.outputLayer:
+				for gradient in neuron.getGradients():
+					output += [gradient]
+
+			return output
 
 
 		'''
